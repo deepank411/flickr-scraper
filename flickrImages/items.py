@@ -12,5 +12,6 @@ class FlickrimagesItem(scrapy.Item):
     # define the fields for your item here like:
     # image = scrapy.Field()
     image_urls = scrapy.Field()
+    image_name = scrapy.Field()
     title = scrapy.Field()
     tags = scrapy.Field()

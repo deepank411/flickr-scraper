@@ -1,5 +1,6 @@
 import scrapy, re
 from scrapy_splash import SplashRequest
+from hashlib import sha1
 
 from flickrImages.items import FlickrimagesItem
 
@@ -27,7 +28,7 @@ class FlickrSpider(scrapy.Spider):
             print href.extract()
             full_url = response.urljoin(href.extract()[0])
             yield SplashRequest(full_url, self.parse_image, args={'wait': 1.5})
-            break
+            # break
 
         # yield SplashRequest(prev_url, self.parse, args={'wait': 1.5})
 
@@ -36,20 +37,22 @@ class FlickrSpider(scrapy.Spider):
         # print response.css("body").extract()
         title = response.css("h1.photo-title::text").extract()
         print title
-
+        if title:
+            item['title'] = title[0]
         img = response.css("div.photo-well-media-scrappy-view img.main-photo::attr(src)").extract()
+        img = ['http:' + img[0]]
         print img
-        item['image_urls'] = ['http:' + img[0]]
-        item['title'] = title[0]
+        item['image_urls'] = img
+        item['image_name'] = sha1(img[0]).hexdigest() + '.jpg'
         outerlist = response.css("ul.tags-list")
         l = outerlist.css("li a::text").extract()
         l = [i.strip() for i in l]
         l2 = filter(None, l)
         print l2
-        item['tags'] = l2
-        return item
-        # if l2 == []:
-        #     pass
-        # else:
-        #     item['tags'] = l2
-        #     return item
+        if l2 == []:
+            pass
+        else:
+            item['tags'] = l2
+            return item
+        # item['tags'] = l2
+        # return item
