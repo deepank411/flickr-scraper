@@ -19,14 +19,17 @@ class FlickrSpider(scrapy.Spider):
 
     def parse(self, response):
         # print response.css("div.title-row").extract()
-        print response.css("div.explore-pagination a::attr(href)").extract_first()
+        prev_url = response.css("div.explore-pagination a::attr(href)").extract_first()
+        print prev_url
 
         for i in response.css("div.photo-list-photo-view"):
             href = i.css("div.photo-list-photo-interaction a.overlay::attr(href)")
             print href.extract()
             full_url = response.urljoin(href.extract()[0])
             yield SplashRequest(full_url, self.parse_image, args={'wait': 1.5})
-            # break
+            break
+
+        # yield SplashRequest(prev_url, self.parse, args={'wait': 1.5})
 
     def parse_image(self, response):
         item = FlickrimagesItem()
@@ -36,15 +39,17 @@ class FlickrSpider(scrapy.Spider):
 
         img = response.css("div.photo-well-media-scrappy-view img.main-photo::attr(src)").extract()
         print img
-        item['image_url'] = img[0]
+        item['image_urls'] = ['http:' + img[0]]
         item['title'] = title[0]
         outerlist = response.css("ul.tags-list")
         l = outerlist.css("li a::text").extract()
         l = [i.strip() for i in l]
         l2 = filter(None, l)
         print l2
-        if l2 == []:
-            pass
-        else:
-            item['tags'] = l2
-            return item
+        item['tags'] = l2
+        return item
+        # if l2 == []:
+        #     pass
+        # else:
+        #     item['tags'] = l2
+        #     return item
