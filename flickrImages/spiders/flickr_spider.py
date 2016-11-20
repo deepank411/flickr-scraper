@@ -30,7 +30,7 @@ class FlickrSpider(scrapy.Spider):
             yield SplashRequest(full_url, self.parse_image, args={'wait': 1.5})
             # break
 
-        # yield SplashRequest(prev_url, self.parse, args={'wait': 1.5})
+        yield SplashRequest(response.urljoin(prev_url), self.parse, args={'wait': 1.5})
 
     def parse_image(self, response):
         item = FlickrimagesItem()

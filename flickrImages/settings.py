@@ -21,7 +21,7 @@ NEWSPIDER_MODULE = 'flickrImages.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-SPLASH_URL = 'http://172.22.44.130:8050/'
+SPLASH_URL = 'http://172.22.45.230:8050/'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
