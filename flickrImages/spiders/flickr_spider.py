@@ -11,7 +11,7 @@ class FlickrSpider(scrapy.Spider):
     # month = [str(item).zfill(2) for item in range(1,13)]
     # year = ['2015', '2016']
 
-    start_urls = ['https://www.flickr.com/explore']
+    start_urls = ['https://www.flickr.com/explore/2013/01/01']
 
     def start_requests(self):
         for url in self.start_urls:
@@ -20,17 +20,17 @@ class FlickrSpider(scrapy.Spider):
 
     def parse(self, response):
         # print response.css("div.title-row").extract()
-        prev_url = response.css("div.explore-pagination a::attr(href)").extract_first()
-        print prev_url
+        next_url = response.css("div.explore-pagination a::attr(href)").extract()
+        print next_url[-1]
 
         for i in response.css("div.photo-list-photo-view"):
             href = i.css("div.photo-list-photo-interaction a.overlay::attr(href)")
             print href.extract()
             full_url = response.urljoin(href.extract()[0])
-            yield SplashRequest(full_url, self.parse_image, args={'wait': 1.5})
+            yield SplashRequest(full_url, self.parse_image, args={'wait': 2.5})
             # break
 
-        yield SplashRequest(response.urljoin(prev_url), self.parse, args={'wait': 1.5})
+        yield SplashRequest(response.urljoin(next_url[-1]), self.parse, args={'wait': 1.5})
 
     def parse_image(self, response):
         item = FlickrimagesItem()
