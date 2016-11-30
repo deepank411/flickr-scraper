@@ -7,11 +7,7 @@ from flickrImages.items import FlickrimagesItem
 class FlickrSpider(scrapy.Spider):
     name = 'flickrspider'
 
-    # date = [str(item).zfill(2) for item in range(1,26)]
-    # month = [str(item).zfill(2) for item in range(1,13)]
-    # year = ['2015', '2016']
-
-    start_urls = ['https://www.flickr.com/explore/2013/01/01']
+    start_urls = ['https://www.flickr.com/explore/2016/10/01']
 
     def start_requests(self):
         for url in self.start_urls:
@@ -21,14 +17,16 @@ class FlickrSpider(scrapy.Spider):
     def parse(self, response):
         # print response.css("div.title-row").extract()
         next_url = response.css("div.explore-pagination a::attr(href)").extract()
-        print next_url[-1]
+        print next_url
+        print 'next url: '+ next_url[-1]
 
         for i in response.css("div.photo-list-photo-view"):
             href = i.css("div.photo-list-photo-interaction a.overlay::attr(href)")
-            print href.extract()
-            full_url = response.urljoin(href.extract()[0])
-            yield SplashRequest(full_url, self.parse_image, args={'wait': 2.5})
-            # break
+            print  href.extract()
+            if len(href.extract()) != 0:
+                full_url = response.urljoin(href.extract()[0])
+                yield SplashRequest(full_url, self.parse_image, args={'wait': 2.5})
+            #break
 
         yield SplashRequest(response.urljoin(next_url[-1]), self.parse, args={'wait': 1.5})
 

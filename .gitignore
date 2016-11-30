@@ -1,3 +1,4 @@
 **/*.json
 **/*.pyc
+**/*.py.*
 images/
