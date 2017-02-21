@@ -5,54 +5,39 @@ from hashlib import sha1
 from flickrImages.items import FlickrimagesItem
 
 class FlickrSpider(scrapy.Spider):
-    name = 'flickrspider'
+	name = 'flickrspider'
 
-    # date = [str(item).zfill(2) for item in range(1,26)]
-    # month = [str(item).zfill(2) for item in range(1,13)]
-    # year = ['2015', '2016']
+	start_urls = ['https://www.flickr.com/photos/tags/food', 'https://www.flickr.com/photos/tags/sport']
 
-    start_urls = ['https://www.flickr.com/explore/2013/01/01']
+	def parse(self, response):
 
-    def start_requests(self):
-        for url in self.start_urls:
-            print url
-            yield SplashRequest(url, self.parse, args={'wait': 0.5})
+		next_url = response.css("div.pagination-view a::attr(href)").extract()[-1]
 
-    def parse(self, response):
-        # print response.css("div.title-row").extract()
-        next_url = response.css("div.explore-pagination a::attr(href)").extract()
-        print next_url[-1]
+		for i in response.css("div.photo-list-photo-interaction a.overlay::attr(href)").extract():
+			full_url = response.urljoin(i)
+			print 'full_url: ' + full_url
+			yield SplashRequest(full_url, callback = self.parse_image, args={'wait': 5})
 
-        for i in response.css("div.photo-list-photo-view"):
-            href = i.css("div.photo-list-photo-interaction a.overlay::attr(href)")
-            print href.extract()
-            full_url = response.urljoin(href.extract()[0])
-            yield SplashRequest(full_url, self.parse_image, args={'wait': 2.5})
-            # break
+		yield scrapy.Request(response.urljoin(next_url), callback = self.parse)
 
-        yield SplashRequest(response.urljoin(next_url[-1]), self.parse, args={'wait': 1.5})
-
-    def parse_image(self, response):
-        item = FlickrimagesItem()
-        # print response.css("body").extract()
-        title = response.css("h1.photo-title::text").extract()
-        print title
-        if title:
-            item['title'] = title[0]
-        img = response.css("div.photo-well-media-scrappy-view img.main-photo::attr(src)").extract()
-        img = ['http:' + img[0]]
-        print img
-        item['image_urls'] = img
-        item['image_name'] = sha1(img[0]).hexdigest() + '.jpg'
-        outerlist = response.css("ul.tags-list")
-        l = outerlist.css("li a::text").extract()
-        l = [i.strip() for i in l]
-        l2 = filter(None, l)
-        print l2
-        if l2 == []:
-            pass
-        else:
-            item['tags'] = l2
-            return item
-        # item['tags'] = l2
-        # return item
+	def parse_image(self, response):
+		item = FlickrimagesItem()
+		outerlist = response.css("ul.tags-list")
+		l = outerlist.css("li.autotag a::text").extract()
+		l = [i.strip() for i in l]
+		l2 = filter(None, l)
+		print l2
+		if l2 == []:
+			pass
+		else:
+			title = response.css("h1.photo-title::text").extract()
+			print title
+			if title:
+				item['title'] = title[0]
+			img = response.css("div.photo-well-media-scrappy-view img.main-photo::attr(src)").extract()
+			img = ['http:' + img[0]]
+			print img
+			item['image_urls'] = img
+			item['image_name'] = sha1(img[0]).hexdigest() + '.jpg'
+			item['tags'] = l2
+			return item
